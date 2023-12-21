@@ -1,6 +1,14 @@
-# zardkat 🐱
+# Zardkat - Polygon module 3
 
-A [hardhat-circom](https://github.com/projectsophon/hardhat-circom) template to generate zero-knowledge circuits, proofs, and solidity verifiers
+In this module project , I have implemented zksnark circuit and deployed it to mumbai testnet. The circuit design is provided in the assessment page. 
+
+## Inputs Provided
+
+The inputs provided in the json file are A:0 , B:1
+
+## Circuit
+
+In the circuit , we have made use of three gates - AND, OR , NOT gate .
 
 ## Quick Start
 Compile the Multiplier2() circuit and verify it against a smart contract verifier
@@ -11,15 +19,49 @@ pragma circom 2.0.0;
 /*This circuit template checks that c is the multiplication of a and b.*/  
 
 template Multiplier2 () {  
+   signal input A;
+   signal input B;
+   signal X;
+   signal Y;
+   signal output Q;
 
-   // Declaration of signals.  
-   signal input a;  
-   signal input b;  
-   signal output c;  
+   component and_gate=AND();
+   component or_gate=OR();
+   component not_gate=NOT();
 
-   // Constraints.  
-   c <== a * b;  
+   and_gate.a <== A ;
+   and_gate.b <== B ;
+   X <== and_gate.out ;
+
+   not_gate.in <== B ;
+   Y <== not_gate.out;
+
+   or_gate.a <== X;
+   or_gate.b <== Y;
+   Q <== or_gate.out;
+
 }
+template AND() {
+    signal input a;
+    signal input b;
+    signal output out;
+
+    out <== a*b;
+}
+template OR() {
+    signal input a;
+    signal input b;
+    signal output out;
+
+    out <== a + b - a*b;
+}
+template NOT() {
+    signal input in;
+    signal output out;
+
+    out <== 1 + in - 2*in;
+}
+
 component main = Multiplier2();
 ```
 ### Install
@@ -29,10 +71,10 @@ component main = Multiplier2();
 `npx hardhat circom` 
 This will generate the **out** file with circuit intermediaries and geneate the **MultiplierVerifier.sol** contract
 
-### Prove and Deploy
-`npx hardhat run scripts/deploy.ts`
+### Prove and Deploy to Mumbai Testnet
+`npx hardhat run scripts/deploy.ts --network mumbai`
 This script does 4 things  
-1. Deploys the MultiplierVerifier.sol contract
+1. Deploys the MultiplierVerifier.sol contract to mumbai testnet
 2. Generates a proof from circuit intermediaries with `generateProof()`
 3. Generates calldata with `generateCallData()`
 4. Calls `verifyProof()` on the verifier contract with calldata
@@ -103,3 +145,16 @@ npx hardhat newcircuit --name newcircuit
 **determinism**
 > When you recompile the same circuit using the groth16 protocol, even with no changes, this plugin will apply a new final beacon, changing all the zkey output files. This also causes your Verifier contracts to be updated.
 > For development builds of groth16 circuits, we provide the --deterministic flag in order to use a NON-RANDOM and UNSECURE hardcoded entropy (0x000000 by default) which will allow you to more easily inspect and catch changes in your circuits. You can adjust this default beacon by setting the beacon property on a circuit's config in your hardhat.config.js file.
+
+### Adding Private Key
+
+Make sure to add your private key of your wallet in .env file and make sure to add .env to gitignore file as it is sensitive information which you do not want to share :).
+
+
+## Authors
+
+Jaidev K [jaidevvk12@gmail.com]
+
+## License 
+
+This project is licensed under the [GPL] License - see the LICENSE.md file for details
